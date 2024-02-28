@@ -21,9 +21,9 @@ pipeline {
         }
         stage('Plan') {
             steps {
-                bat 'cd terraform && terraform init'
-                bat 'cd terraform && terraform plan -out tfplan'
-                bat 'cd terraform && terraform show -no-color tfplan > tfplan.txt'
+                bat 'cd terraform && C:\Program Files\terraform\terraform.exe init'
+                bat 'cd terraform && C:\Program Files\terraform\terraform.exe plan -out tfplan'
+                bat 'cd terraform && C:\Program Files\terraform\terraform.exe show -no-color tfplan > tfplan.txt'
             }
         }
         stage('Approval') {
@@ -44,7 +44,7 @@ pipeline {
         }
         stage('Apply') {
             steps {
-                bat 'cd terraform && terraform apply -input=false tfplan'
+                bat 'cd terraform && C:\Program Files\terraform\terraform.exe apply -input=false tfplan'
             }
         }
     }
