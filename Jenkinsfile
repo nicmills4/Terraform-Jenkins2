@@ -8,34 +8,48 @@ pipeline {
         AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
     }
 
-   agent  any
+agent  any
     stages {
         stage('checkout') {
             steps {
                  script{
+                        dir("terraform")
+                        {
                             git "https://github.com/nicmills4/Terraform-Jenkins2.git"
+                        }
                     }
                 }
             }
 
-        stage ("terraform init") {
+        stage('Plan') {
             steps {
-                bat ("terraform init -reconfigure") 
+                bat 'cd terraform & terraform init'
+                bat 'cd terraform & terraform plan -out tfplan'
+                bat 'cd terraform & terraform show -no-color tfplan > tfplan.txt'
             }
         }
-        
-        stage ("plan") {
-            steps {
-                bat ('terraform plan') 
-            }
-        }
-
-        stage (" Action") {
-            steps {
-                echo "Terraform action is --> ${action}"
-                bat ('terraform ${action} --auto-approve') 
+        stage('Approval') {
+           when {
+               not {
+                   equals expected: true, actual: params.autoApprove
+               }
            }
+
+           steps {
+               script {
+                    def plan = readFile 'terraform/tfplan.txt'
+                    input message: "Do you want to apply the plan?",
+                    parameters: [text(name: 'Plan', description: 'Please review the plan', defaultValue: plan)]
+               }
+           }
+       }
+
+        stage('Apply') {
+            steps {
+                bat "pwd;cd terraform/ & terraform apply -input=false tfplan"
+            }
         }
     }
 
   }
+ 
